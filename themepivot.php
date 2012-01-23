@@ -64,16 +64,11 @@ class ThemePivot {
 	 * @return void
 	 */
 	function plugin_admin_menu() {
-		$page = add_submenu_page( 'tools.php', 
-															__('ThemePivot'), 
-															__('ThemePivot'), 
-															'manage_options', 
-															'themepivot', 
-															get_class() . '::admin_ui' );
+		$page = add_submenu_page( 'tools.php', __( 'ThemePivot' ), __( 'ThemePivot' ), 'manage_options', 'themepivot', get_class() . '::admin_ui' );
 
 		// hook script load onto our page only
-		add_action('admin_print_styles-' . $page, get_class() . '::plugin_styles');
-		add_action('admin_print_scripts-' . $page, get_class(). '::plugin_scripts');
+		add_action( 'admin_print_styles-' . $page, get_class() . '::plugin_styles' );
+		add_action( 'admin_print_scripts-' . $page, get_class(). '::plugin_scripts' );
 	}
 
 	/*
@@ -83,8 +78,8 @@ class ThemePivot {
 	 */
 	function plugin_admin_init() {
 		// register assets
-		wp_register_style('themepivot_css', plugins_url('/assets/styles/themepivot.css', __FILE__), null, '1.0', 'screen');
-		wp_register_script('themepivot_js', plugins_url('/assets/scripts/themepivot.js', __FILE__));
+		wp_register_style( 'themepivot_css', plugins_url( '/assets/styles/themepivot.css', __FILE__ ), null, '1.0', 'screen' );
+		wp_register_script( 'themepivot_js', plugins_url( '/assets/scripts/themepivot.js', __FILE__ ) );
 	}
 
 	/*
@@ -93,7 +88,7 @@ class ThemePivot {
 	 * @return void
 	 */
 	function plugin_scripts() {
-		wp_enqueue_script('themepivot_js');
+		wp_enqueue_script( 'themepivot_js' );
 	}
 
 	/*
@@ -102,7 +97,7 @@ class ThemePivot {
 	 * @return void
 	 */
 	function plugin_styles() {
-		wp_enqueue_style('themepivot_css');
+		wp_enqueue_style( 'themepivot_css' );
 		echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
 	}
 
@@ -123,9 +118,9 @@ class ThemePivot {
 		<div class="section">
 	<?php
 
-		if( isset($_POST['submit']) && isset($_POST['job_id'])) {
-			$res = self::run($_POST['job_id']);
-			if ($res) {
+		if( isset( $_POST['submit'] ) && isset( $_POST['job_id'] ) ) {
+			$res = self::run( $_POST['job_id'] );
+			if ( $res ) {
 				echo "<div>";
 
 				echo "<div class='updated'><p>Site pushed</p><div>";;
