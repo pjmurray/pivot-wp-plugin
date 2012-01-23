@@ -110,7 +110,6 @@ class ThemePivot {
 	 * UI for ThemePivot Page
 	 *
 	 * @return void
-	 * @author Anthony Cole
 	 */
 	public static function admin_ui() {
 	?>
@@ -261,7 +260,6 @@ class ThemePivot_Backup {
 	// manifest file
 	private $manifest_file;
 
-	// private construct??
 	private function __construct() {
 
 		@ini_set( 'memory_limi', apply_filters( 'admin_memory_limit', WP_MAX_MEMORY_LIMIT ) );
@@ -273,7 +271,6 @@ class ThemePivot_Backup {
 		
 		$this->manifest_file = 'manifest.json';
 		$this->sql_dump_file = DB_NAME . '.sql';
-		//print "<div>path: $this->path</div>";
 	}
 
 	public static function instance() {
@@ -370,8 +367,11 @@ class ThemePivot_Backup {
 	 * Alain Wolf, Zurich - Switzerland
 	 * Website: http://restkultur.ch/personal/wolf/scripts/db_backup/
 	
-	 * Modified by Scott Merrill (http://www.skippy.net/) 
+	 * Modifications by Scott Merrill (http://www.skippy.net/) 
 	 * to use the WordPress $wpdb object
+	 *
+	 * Tailored for ThemePivot requirements
+	 *
 	 * @param string $table
 	 * @param string $segment
 	 * @return void
