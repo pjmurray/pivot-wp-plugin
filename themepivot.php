@@ -64,11 +64,16 @@ class ThemePivot {
 	 * @return void
 	 */
 	function plugin_admin_menu() {
-		$page = add_submenu_page( 'tools.php', __( 'ThemePivot' ), __( 'ThemePivot' ), 'manage_options', 'themepivot', get_class() . '::admin_ui' );
+		$page = add_submenu_page( 'tools.php', 
+															__('ThemePivot'), 
+															__('ThemePivot'), 
+															'manage_options', 
+															'themepivot', 
+															get_class() . '::admin_ui' );
 
 		// hook script load onto our page only
-		add_action( 'admin_print_styles-' . $page, get_class() . '::plugin_styles' );
-		add_action( 'admin_print_scripts-' . $page, get_class(). '::plugin_scripts' );
+		add_action('admin_print_styles-' . $page, get_class() . '::plugin_styles');
+		add_action('admin_print_scripts-' . $page, get_class(). '::plugin_scripts');
 	}
 
 	/*
@@ -78,8 +83,8 @@ class ThemePivot {
 	 */
 	function plugin_admin_init() {
 		// register assets
-		wp_register_style( 'themepivot_css', plugins_url( '/assets/styles/themepivot.css', __FILE__ ), null, '1.0', 'screen' );
-		wp_register_script( 'themepivot_js', plugins_url( '/assets/scripts/themepivot.js', __FILE__ ) );
+		wp_register_style('themepivot_css', plugins_url('/assets/styles/themepivot.css', __FILE__), null, '1.0', 'screen');
+		wp_register_script('themepivot_js', plugins_url('/assets/scripts/themepivot.js', __FILE__));
 	}
 
 	/*
@@ -88,7 +93,7 @@ class ThemePivot {
 	 * @return void
 	 */
 	function plugin_scripts() {
-		wp_enqueue_script( 'themepivot_js' );
+		wp_enqueue_script('themepivot_js');
 	}
 
 	/*
@@ -97,7 +102,7 @@ class ThemePivot {
 	 * @return void
 	 */
 	function plugin_styles() {
-		wp_enqueue_style( 'themepivot_css' );
+		wp_enqueue_style('themepivot_css');
 		echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
 	}
 
@@ -105,6 +110,7 @@ class ThemePivot {
 	 * UI for ThemePivot Page
 	 *
 	 * @return void
+	 * @author Anthony Cole
 	 */
 	public static function admin_ui() {
 	?>
@@ -118,9 +124,9 @@ class ThemePivot {
 		<div class="section">
 	<?php
 
-		if( isset( $_POST['submit'] ) && isset( $_POST['job_id'] ) ) {
-			$res = self::run( $_POST['job_id'] );
-			if ( $res ) {
+		if( isset($_POST['submit']) && isset($_POST['job_id'])) {
+			$res = self::run($_POST['job_id']);
+			if ($res) {
 				echo "<div>";
 
 				echo "<div class='updated'><p>Site pushed</p><div>";;
@@ -153,7 +159,7 @@ class ThemePivot {
 		ThemePivot_Backup::instance()->set_job_id( $job_id );
 		ThemePivot_Backup::instance()->backup();
 
-		//self::upload();
+		self::upload();
 		
 		if( is_wp_error( self::$error )) 
 			return self::$error;
@@ -198,13 +204,13 @@ class ThemePivot {
 	 * @return void
 	 **/
 	public static function upload() {
-		$svr = '107.20.214.130';
+		$svr = '107.21.227.54';
 		$conn_id = ftp_connect($svr);
 
 		$ftp_user = 'themepivot';
-		$ftp_pass = 'fuckTh1s';
+		$ftp_pass = 'pivoting';
 		$login_res = ftp_login($conn_id, $ftp_user, $ftp_pass);
-		ftp_pasv($conn_id, true);
+		//ftp_pasv($conn_id, true);
 
 		if ((!$conn_id) || (!$login_res)) {
 			Throw new exception ('FTP connect failed');
@@ -216,6 +222,8 @@ class ThemePivot {
 		if (!$upload) {
 			Throw new exception ('FTP upload failed');
 		}
+
+		ftp_close($conn_id);
 	}
 }
 
@@ -255,6 +263,7 @@ class ThemePivot_Backup {
 	// manifest file
 	private $manifest_file;
 
+	// private construct??
 	private function __construct() {
 
 		@ini_set( 'memory_limi', apply_filters( 'admin_memory_limit', WP_MAX_MEMORY_LIMIT ) );
@@ -266,6 +275,7 @@ class ThemePivot_Backup {
 		
 		$this->manifest_file = 'manifest.json';
 		$this->sql_dump_file = DB_NAME . '.sql';
+		//print "<div>path: $this->path</div>";
 	}
 
 	public static function instance() {
@@ -362,11 +372,8 @@ class ThemePivot_Backup {
 	 * Alain Wolf, Zurich - Switzerland
 	 * Website: http://restkultur.ch/personal/wolf/scripts/db_backup/
 	
-	 * Modifications by Scott Merrill (http://www.skippy.net/) 
+	 * Modified by Scott Merrill (http://www.skippy.net/) 
 	 * to use the WordPress $wpdb object
-	 *
-	 * Tailored for ThemePivot requirements
-	 *
 	 * @param string $table
 	 * @param string $segment
 	 * @return void
@@ -582,7 +589,7 @@ class ThemePivot_Backup {
 		}
 
 		// add db dump
-		$files[] = $this->normalise_path( $this->archive_path ) . '/' . $this->sql_dump_file;
+		//$files[] = $this->normalise_path( $this->archive_path ) . '/' . $this->sql_dump_file;
 
 		//$res = $this->get_dir_iterative( ABSPATH, true );
 
@@ -639,6 +646,8 @@ class ThemePivot_Backup {
 		$f = trim($f, ',');
 
 		$res = $archive->add($f, PCLZIP_OPT_REMOVE_PATH, ABSPATH );
+
+		$res = $archive->add($this->normalise_path( $this->archive_path ) . '/' . $this->sql_dump_file, PCLZIP_OPT_REMOVE_PATH, $this->archive_path);
 		//print "<div>$t</div>";
 		//if ( !$res )
 			//print "<div>errored:  </div>";
