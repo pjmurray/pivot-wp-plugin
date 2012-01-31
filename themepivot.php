@@ -5,7 +5,7 @@ Version: 1.0
 Plugin URI: http://themepivot.com/
 Description: 
 Author: ThemePivot
-Author URI: http://themepivot.com
+Author URI: http://themepivot.com/
 
 Copyright 2012 
 
@@ -274,7 +274,8 @@ class ThemePivot_Backup {
 		$this->archive_path = $this->normalise_path( WP_PLUGIN_DIR . '/themepivot/uploads' );
 		
 		$this->manifest_file = 'manifest.json';
-		$this->sql_dump_file = DB_NAME . '.sql';
+		//$this->sql_dump_file = DB_NAME . '.sql';
+		$this->sql_dump_file = 'wp_db_dump.sql';
 		//print "<div>path: $this->path</div>";
 	}
 
