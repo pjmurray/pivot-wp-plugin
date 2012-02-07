@@ -63,7 +63,7 @@ class ThemePivot {
 	 *
 	 * @return void
 	 */
-	function plugin_admin_menu() {
+	public static function plugin_admin_menu() {
 		$page = add_submenu_page( 'tools.php', 
 															__('ThemePivot'), 
 															__('ThemePivot'), 
@@ -81,7 +81,7 @@ class ThemePivot {
 	 *
 	 * @ return void
 	 */
-	function plugin_admin_init() {
+	public static function plugin_admin_init() {
 		// register assets
 		wp_register_style('themepivot_css', plugins_url('/assets/styles/themepivot.css', __FILE__), null, '1.0', 'screen');
 		wp_register_script('themepivot_js', plugins_url('/assets/scripts/themepivot.js', __FILE__));
@@ -92,7 +92,7 @@ class ThemePivot {
 	 *
 	 * @return void
 	 */
-	function plugin_scripts() {
+	public static function plugin_scripts() {
 		wp_enqueue_script('themepivot_js');
 	}
 
@@ -101,7 +101,7 @@ class ThemePivot {
 	 *
 	 * @return void
 	 */
-	function plugin_styles() {
+	public static function plugin_styles() {
 		wp_enqueue_style('themepivot_css');
 		echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
 	}
@@ -110,7 +110,6 @@ class ThemePivot {
 	 * UI for ThemePivot Page
 	 *
 	 * @return void
-	 * @author Anthony Cole
 	 */
 	public static function admin_ui() {
 	?>
@@ -136,7 +135,7 @@ class ThemePivot {
 		else {
 			?>
 			<form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
-				<input class="text" id="project_website" name="job_id" placeholder="Enter Job ID to upload site to marketplace" size="60" type="text" />
+				<input class="text" id="project_website" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
 				<input class="submit" name="submit" type="submit" value="Submit Job" />
 			</form>
 		</div>
@@ -151,7 +150,6 @@ class ThemePivot {
 	 * Runs the process
 	 *
 	 * @return void
-	 * @author Anthony Cole
 	 **/
 	public static function run( $job_id ) {
 		self::$error = new WP_Error();
@@ -179,7 +177,6 @@ class ThemePivot {
 	 * undocumented function
 	 *
 	 * @return void
-	 * @author Anthony Cole
 	 **/
 	/*
 	public static function json_posts()
