@@ -57,7 +57,7 @@ class ThemePivot {
 		add_action( 'admin_init', get_class() . '::plugin_admin_init' );
 		add_action( 'admin_menu', get_class() . '::plugin_admin_menu' );
 	}
-
+	
 	/*
 	 * Adds a subpage under "Tools"
 	 *
@@ -93,7 +93,11 @@ class ThemePivot {
 	 * @return void
 	 */
 	public static function plugin_scripts() {
-		wp_enqueue_script('themepivot_js');
+		wp_enqueue_script( 'themepivot_js' );
+		// embed the javascript file that makes the AJAX request
+		wp_enqueue_script( 'my-ajax-request', plugin_dir_url( __FILE__ ) . 'js/ajax.js', array( 'jquery' ) );
+		// declare the URL to the file that handles th AJAX request (wp-admin/admin-ajax.php)
+		wp_localize_script( 'my-ajax-request', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 	}
 
 	/*
@@ -125,11 +129,12 @@ class ThemePivot {
 
 		if( isset($_POST['submit']) && isset($_POST['job_id'])) {
 			$res = self::run($_POST['job_id']);
+			$t = $_POST['job_id'];
 			if ($res) {
-				echo "<div>";
-
-				echo "<div class='updated'><p>Site pushed</p><div>";;
-				echo "</div>";
+				print "<div>";
+				print "<p>Your website has been uploaded to ThemePivot and has been made available to our marketplace of developers to start making your changes</p>";
+				print "<p><a href='http://www.themepivot.com/projects/$t' target='_blank'>Click here</a>&nbsp;to view your project page</p>";
+				print "</div>";
 			}
 		}
 		else {
