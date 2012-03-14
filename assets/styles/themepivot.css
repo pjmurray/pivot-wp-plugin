@@ -1,7 +1,7 @@
 
 div.section{
   width:960px;
-  font-family: "Open Sans", "sans serif";
+  font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", "sans serif", "Open Sans";
   background-color:#fbfaf7;
   border:1px solid #fbfaf7;
   -webkit-border-radius: 8px;
@@ -11,13 +11,6 @@ div.section{
   -webkit-box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, .2);
   -moz-box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, .2);
   box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, .2);
-}
-
-h5 {
-  font-size:30px;
-  font-weight: normal;
-  text-shadow: 0px 1px 0px white;
-  margin:20px 0 0 20px;
 }
 
 .tp_wrap{
@@ -93,7 +86,7 @@ form .text{
   position:absolute;
   left:20px;
   /*right:192px;*/
-  font-size:17px;
+  font-size:14px;
 }
 
 form .submit{
@@ -133,8 +126,7 @@ form a.button{
   box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5);
   font-family: 'Open Sans';
   color:white;
-  font-weight:bold;
-  font-size:17px;
+  font-size:16px;
   cursor:pointer;
 }
 
@@ -176,11 +168,62 @@ h2 {
   filter: dropshadow(color=#ffffff, offx=0, offy=1);
 }
 
+h3 {
+  font-size: 20px;
+  font-weight: normal;
+  margin:0;
+  padding: 0 10px;
+}
+
+h5 {
+  font-size:30px;
+  font-weight: normal;
+  text-shadow: 0px 1px 0px white;
+  margin:20px 0 0 20px;
+}
+
 div.section > h2{
   font-weight:bold;
 }
 
+
+
 p {
-	font-size: 17px;
+	font-size: 14px;
 	padding:0 10px;
+}
+
+code {
+  font-size: 14px;
+}
+
+/* notification messages */
+.info, .success, .warning, .error, .validation {
+  border: 1px solid;
+  margin: 10px 0px;
+  padding:15px 10px 15px 10px;
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  border-radius:2px;
+}
+.info {
+  color: #00529B;
+  background-color: #C1EBF4;
+  /*background-image: url('info.png');*/
+}
+.success {
+  color: #4F8A10;
+  background-color: #DFF2BF;
+  /*background-image:url('success.png');*/
+}
+.warning {
+  /*color: #9F6000;*/
+  color: #000000;
+  background-color: #FEEFB3;
+  /*background-image: url('warning.png');*/
+}
+.error {
+  color: #D8000C;
+  background-color: #FFBABA;
+  /*background-image: url('error.png');*/
 }

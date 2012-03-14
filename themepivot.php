@@ -28,12 +28,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 @todo 
 - check permissions on everything and make sure that the end user is notified if there's incorrec perms anywhere.
 - check user has permission to perform backup / upload
-- check user has permission to write files to default archive path. if not try alternatives such as /tmp and c:\tmp
+- check user has permission to write files to default archive path
+- create archive path if doesn't exist
 - check for ziparchive dependency because that is heaps quicker.
-- note - after the file has been compressed, we want to remove the options.json. becuase that exposed is bad.
+- randomise the backup directory name for security
 */
 
-require_once('themepivot_util.php');
+// dont call the file directly
+if (!ABSPATH)
+  return;
+
+require_once('themepivot_config.php');
+require_once('themepivot_capabilities.php');
 require_once('themepivot_backup.php');
 require_once('themepivot_deploy.php');
 
@@ -99,7 +105,7 @@ class ThemePivot {
 	 */
 	public static function plugin_styles() {
 		wp_enqueue_style('themepivot_css');
-		echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
+		//echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
 	}
 
 	/*
@@ -119,33 +125,21 @@ class ThemePivot {
 	<?php
 
 		if( isset($_POST['submit']) && isset($_POST['job_id'])) {
-			$t = $_POST['job_id'];
-      print "<div class='section'>";
-			if ( !is_wp_error ( $res = self::run( $_POST['job_id'] ) ) ) {
-				print "<div>";
-				print "<p>Your website has been uploaded to ThemePivot and has been made available to our marketplace of developers to start making your changes</p>";
-				print "<p><a href='http://pivot-market.herokuapp.com/projects/$t' target='_blank'>Click here</a>&nbsp;to view your project page</p>";
-				print "</div>";
-			} else {
-				// errored
-				$err_msg = $res->get_error_message();
-				print "<div>";
-				print "<p>Sorry, we've run into an error whilst taking a snapshot of your site</p>";
-				print "<p>$err_msg</p>";
-				print "</div>";
-			}
-      print "</div>";
+      self::new_job($_POST['job_id']);
 		}
     elseif( isset($_POST['makechanges']) && isset($_POST['soln_id'])) {
-      $t = $_POST['soln_id'];
-      print "<div class='section'>";
-      print "<h5>awesome, made changes</h5>";
-      print "</div>";
+      self::deploy_job($_POST['soln_id']);
     }
 		else {
 			?>
       <div class='section'>
-      <h5>New Job</h5>
+      <h5>Manage Projects</h5>
+
+        <?php
+        $capabilities = new TP_Capabilities();
+        $capabilities->display_warnings();
+        ?>
+
 			<form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
 				<input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
 				<input class="submit" name="submit" type="submit" value="Submit Job" />
@@ -165,33 +159,61 @@ class ThemePivot {
 		<?php
 	}
 
-	
 	/**
 	 * Runs the process
 	 *
 	 **/
-	public static function run( $job_id ) {
+	public static function new_job( $job_id ) {
 	
-		ThemePivot_Backup::instance()->set_job_id( $job_id );
-		
-		if ( is_wp_error( $res = ThemePivot_Backup::instance()->backup() ) ) {
-			return $res;
-		}
+		$job = new TP_Backup($job_id);
+		$result = $job->backup();
 
-    /*
-		if ( is_wp_error( ThemePivot_Backup::instance()->upload() ) ) {
-			return false;
-		}
-		*/
-		return true;
+    print "<div class='section'>";
+
+    if ( !is_wp_error ( $result ) ) {
+      print "<div>";
+      print "<p>Your website has been uploaded to ThemePivot and has been made available to our marketplace of developers to start making your changes</p>";
+      print "<p><a href='http://pivot-market.herokuapp.com/projects/$job_id' target='_blank'>Click here</a>&nbsp;to view your project page</p>";
+      print "</div>";
+    } else {
+      // errored
+      $err_msg = $result->get_error_message();
+      print "<div>";
+      print "<p>Sorry, we've run into an error whilst taking a snapshot of your site</p>";
+      print "<p>$err_msg</p>";
+      print "</div>";
+    }
+    print "</div>";
 	}
+
+  public static function deploy_job( $soln_id ) {
+
+    $solution = new TP_Deploy($soln_id);
+    $result =  $solution->deploy();
+
+    print "<div class='section'>";
+    if ( !is_wp_error ( $result)) {
+      print "<div>";
+      print "<p>Your website has been updated with the solution you chose.</p>";
+      print "</div>";
+    } else {
+      // errored
+      $err_msg = $result->get_error_message();
+      print "<div>";
+      print "<p>Sorry, we've run into an error whilst making changes to your site</p>";
+      print "<p>All changes have been reverted</p>";
+      print "<p>$err_msg</p>";
+      print "</div>";
+    }
+
+    print "</div>";
+  }
 
 	function verify_nonce() {
 
 	}
 }
 
-// Fire!
 ThemePivot::init();
 
 ?>

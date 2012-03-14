@@ -1,72 +1,117 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: drew
- * Date: 25/02/12
- * Time: 1:14 PM
- * To change this template use File | Settings | File Templates.
- */
 
-require_once('themepivot_util.php');
+require_once('themepivot_config.php');
+require_once('themepivot_backup_files.php');
 
-class ThemepPivot_Deploy
-{
+class TP_Deploy {
 
+  private $capabilities;
   private $solution_id;
-
   private $proj_filename;
+  private $proj_file;
 
-  // private constructor
-  function __construct($solution_id) {
-
+  public function __construct($solution_id, $capabilities = null) {
     $this->solution_id = $solution_id;
-
-    $this->proj_filename = $this->solution_id . 'zip';
+    $this->capabilities = $capabilities;
   }
 
-  function get_files() {
+  public function deploy() {
 
-  }
-
-  function ftp_connect() {
-
-  }
-
-  public function download() {
+    $this->proj_filename = $this->solution_id . '.zip';
+    $this->proj_file = ARCHIVE_PATH . '/' . $this->proj_filename;
 
     @set_time_limit( 0 );
 
-    $svr = '107.21.227.54';
-    $conn_id = ftp_connect($svr);
+    try {
 
-    $ftp_user = 'themepivot';
-    $ftp_pass = 'pivoting';
-    $login_res = ftp_login($conn_id, $ftp_user, $ftp_pass);
-    //ftp_pasv($conn_id, true);
-
-    if ((!$conn_id) || (!$login_res)) {
-      throw new Exception( "FTP connect failed" );
+      $this->assess_install();
+      $this->backup_current();
+      $this->get_assets();
+      //$this->unpack_assets();
+      $this->deploy_assets();
+      //$this->cleanup();
+      return true;
     }
-
-    $remote_file = '/completed_proj' . $this->proj_filename;
-    $local_file = '';
-    $upload = ftp_put($conn_id, $local_file, $remote_file, FTP_BINARY);
-
-    if (!$upload) {
-      throw new Exception("FTP upload failed");
+    catch (Exception $e) {
+      $this->cleanup();
+      return new WP_Error('Deploy error', $e->getMessage());
     }
-
-    ftp_close($conn_id);
   }
 
-  private function cleanup() {
+  // test for permissions, safe mode etc
+  private function assess_install() {
 
-    // remove generated files
+  }
+
+  // backup wp-content path
+  private function backup_current() {
+    $files_backup = new TP_Backup_Files();
+    $files_backup->backup('current_backup.zip', WP_PATH . '/wp-content/');
+  }
+
+  // download solution assets
+  private function get_assets() {
+
+    @set_time_limit( 0 );
+
+    $remote_file = REMOTE_COMPLETED_PROJ_PATH . '/' . $this->proj_filename;
+    $ftp_conn = null;
+
+    try {
+      $ftp_conn = tp_connect_ftp();
+      if ( !ftp_get($ftp_conn, $this->proj_file, $remote_file, FTP_BINARY) ) {
+        throw new Exception( "FTP download failed");
+      }
+
+      ftp_close($ftp_conn);
+      return true;
+    }
+    catch (Exception $e) {
+      ftp_close($ftp_conn);
+      throw ($e);
+    }
+  }
+
+  // unpack and validate contents
+  private function unpack_assets() {
+
+    // ideally need to explode the zip, check the contents,
+    // check the permissions in destination folder and try
+    // various methods to move the files across
+    try {
+      tp_log("Extracting assets from $this->proj_file");
+      $zip = new PCLZIP($this->proj_file);
+
+      if ($zip->extract(PCL_OPT_PATH, tp_normalise_path(WP_PATH . '/wp-content')) == 0)
+        throw new Exception("Archive extract failed");
+
+      tp_log("Assets deployed");
+    }
+    catch (Exception $e) {
+      throw ($e);
+    }
+
     /*
-    @unlink($this->archive_file);
-    @unlink($this->sql_dump_file);
-    @unlink($this->manifest_file);
+    // extract into archive path
+    if ($zip->extract(PCLZIP_OPT_PATH, ARCHIVE_PATH) == 0)
+      throw new Exception("Archive extract failed");
     */
   }
 
+  // push assets into wp-content path
+  private function deploy_assets() {
+
+  }
+
+  private function rollback_deploy() {
+
+  }
+
+  public function display_work() {
+
+  }
+
+  private function cleanup() {
+    @unlink($this->proj_file);
+  }
 }
