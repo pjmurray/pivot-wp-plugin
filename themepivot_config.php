@@ -1,10 +1,13 @@
 <?php
 
+if (!defined(ABSPATH))
+  return;
+
 define('WP_PATH', tp_normalise_path(ABSPATH));
 
 define('PLUGIN_PATH', tp_normalise_path(dirname(__FILE__)));
 
-define('ARCHIVE_PATH', tp_normalise_path(PLUGIN_PATH . '/uploads'));
+define('ARCHIVE_PATH', tp_normalise_path(PLUGIN_PATH . '/exports'));
 
 define('REMOTE_UPLOAD_PATH', '/uploads');
 
@@ -12,7 +15,7 @@ define('REMOTE_COMPLETED_PROJ_PATH', '/completed_proj');
 
 define('DB_DUMP_FILENAME', 'wp_db_dump.sql');
 
-define('DB_DUMP_FILE', PLUGIN_PATH . '/' . DB_DUMP_FILENAME);
+define('DB_DUMP_FILE', ARCHIVE_PATH . '/' . DB_DUMP_FILENAME);
 
 // Normalise a given path
 function tp_normalise_path( $dir, $recursive = false ) {

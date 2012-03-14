@@ -21,11 +21,7 @@ class TP_Capabilities {
   }
 
   public function is_fatal() {
-
-    if ($this->fatal_constraint)
-      return true;
-
-    return false;
+    return $this->fatal_constraint;
   }
 
   // outputs a description of settings that MAY cause the plugin to fail
@@ -47,6 +43,23 @@ class TP_Capabilities {
 
     try {
 
+      if ( ! is_dir(ARCHIVE_PATH)  && !is_writable(PLUGIN_PATH)) {
+        $this->fatal_constraint = true;
+
+        echo '<div class="warning"><h3>' . __( 'Theme Pivot is almost ready.') . '</h3><p>' . sprintf('However, the exports directory can\'t be created because your %s directory isn\'t writable..', PLUGIN_PATH) . '</p>';
+        if (strncasecmp(PHP_OS,'win',3) != 0) {
+
+          $php_user = exec('whoami');
+          $php_group = reset( explode( ' ', exec( 'groups' ) ) );
+          echo '<p>' . sprintf( 'From a server shell prompt, run %s', '<code>chown ' . $php_user . ':' . $php_group . ' ' . PLUGIN_PATH . '</code>') . '</p>';
+          echo '<p>' . sprintf( 'Or %s', '<code>chmod -R 777 ' . PLUGIN_PATH . '</code>') . '</p>';
+          echo '<p>Or create the folder yourself.</p></div>';
+        }
+        else {
+          echo '<p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p></div>';
+        }
+      }
+
       if ( is_dir(ARCHIVE_PATH) && !is_writable(ARCHIVE_PATH)) {
         $this->fatal_constraint = true;
 
@@ -57,7 +70,7 @@ class TP_Capabilities {
           $php_group = reset( explode( ' ', exec( 'groups' ) ) );
           echo '<p>' . sprintf( 'From a server shell prompt, run %s', '<code>chown -R ' . $php_user . ':' . $php_group . ' ' . ARCHIVE_PATH . '</code>') . '</p>';
           echo '<p>' . sprintf( 'Or %s', '<code>chmod -R 777 ' . ARCHIVE_PATH . '</code>') . '</p>';
-          echo '<p>Or set the permissions yourself.</p></div>';
+          echo '<p>Or set the permissions to your own liking.</p></div>';
         }
         else {
           echo '<p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p></div>';
@@ -91,26 +104,6 @@ class TP_Capabilities {
   }
 
   private function display_wp_filepermissions() {
-
-    if (strncasecmp(PHP_OS,'win',3) != 0) {
-
-      // php process running as:
-      $user = exec('whoami');
-
-      // owner of themepivot archive path
-      $owner = posix_getpwuid(fileowner(ARCHIVE_PATH));
-
-      // file permissions
-      $permissions = fileperms(ARCHIVE_PATH);
-
-      if ($permissions < 755)
-        echo "big problem: owner permissions wrong";
-
-      if ( (strcmp($user, $owner['name']) != 0) && $permissions < 775)
-        echo "big problem: owner != user and permission < 775";
-    }
-
-
     /*
     $this->file_permissions = array();
 
@@ -118,7 +111,7 @@ class TP_Capabilities {
               WP_PATH . '/wp-content/',
               WP_PATH . '/wp-content/plugins',
               WP_PATH . '/wp-content/themes/',
-              WP_PATH . '/wp-content/uploads/');
+              WP_PATH . '/wp-content/exports/');
 
     foreach ($paths as $p) {
       $t = array(

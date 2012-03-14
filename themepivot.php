@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 // dont call the file directly
-if (!ABSPATH)
+if (!defined(ABSPATH))
   return;
 
 require_once('themepivot_config.php');
@@ -122,28 +122,27 @@ class ThemePivot {
 			</div>
 		</div>
 
-	<?php
+    <?php
 
-		if( isset($_POST['submit']) && isset($_POST['job_id'])) {
-      self::new_job($_POST['job_id']);
-		}
-    elseif( isset($_POST['makechanges']) && isset($_POST['soln_id'])) {
-      self::deploy_job($_POST['soln_id']);
-    }
-		else {
-			?>
+    $capabilities = new TP_Capabilities();
+    $capabilities->display_warnings();
+
+    if (!$capabilities->is_fatal()) {
+
+      if( isset($_POST['submit']) && isset($_POST['job_id'])) {
+        self::new_job($_POST['job_id']);
+      }
+      elseif( isset($_POST['makechanges']) && isset($_POST['soln_id'])) {
+        self::deploy_job($_POST['soln_id']);
+      }
+      else { ?>
       <div class='section'>
       <h5>Manage Projects</h5>
 
-        <?php
-        $capabilities = new TP_Capabilities();
-        $capabilities->display_warnings();
-        ?>
-
-			<form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
-				<input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
-				<input class="submit" name="submit" type="submit" value="Submit Job" />
-			</form>
+      <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
+        <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
+        <input class="submit" name="submit" type="submit" value="Submit Job" />
+      </form>
 
       <br />
 
@@ -153,11 +152,13 @@ class ThemePivot {
           <input class="submit" name="makechanges" type="submit" value="Change My Site!" />
         </form>
       </div>
-		<?php }
-		?>
-		</div>
-		<?php
-	}
+      <?php
+      }
+      ?>
+  </div>
+  <?php
+    }
+  }
 
 	/**
 	 * Runs the process

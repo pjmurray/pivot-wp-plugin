@@ -51,8 +51,8 @@ class TP_Backup {
   private function init_fs() {
 
     // check archive path exists
-    if (false === is_dir(ARCHIVE_PATH)) {
-      if (false === (mkdir(dirname(ARCHIVE_PATH), 0775))) {
+    if (!is_dir(ARCHIVE_PATH)) {
+      if (!mkdir(ARCHIVE_PATH, 0775)) {
         throw new Exception("Unable to create Archive path");
       }
     }
