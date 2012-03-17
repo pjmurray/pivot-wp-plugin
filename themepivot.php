@@ -209,12 +209,9 @@ class ThemePivot {
 
     $active_project = $this->options->get_option('active_project');
 
-    echo "<h5>Manage Projects</h5><br/>";
+    echo "<h2>Manage Projects</h2>";
 
-    if (!$active_project)
-      echo "<p>You have no active projects</p>";
-
-    else {
+    if ($active_project) {
       ?>
       <form accept-charset="UTF-8" action="" class="new_project" id="completed_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
         <input class="text" id="completed_key" name="soln_id" placeholder="Enter Successful Project Key to make changes to your site" size="60" type="text" />
@@ -226,6 +223,11 @@ class ThemePivot {
   }
 
   function ui_new_project() {
+    $active_project = $this->options->get_option('active_project');
+
+    if (!$active_project)
+      echo "<p>You have no active projects. Created a project at <a href='http://www.themepivot.com'>ThemePivot</a>? Enter your project activation key below to get your project started.</p>";
+
     ?>
     <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
       <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
@@ -233,6 +235,11 @@ class ThemePivot {
       <?php wp_nonce_field( 'new_project_nonce' ); ?>
     </form>
     <br />
+    <div class="warning">
+      <h3>Important!</h3>
+      <p>After you click 'Submit Project' do not close the browser or leave this page! Leaving the page will cause the project submission to fail.</p>
+      <p>A notification message will be displayed when the project submission is complete.</p>
+    </div>
     <?php
   }
 
