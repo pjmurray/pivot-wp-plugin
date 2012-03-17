@@ -1,6 +1,6 @@
 <?php
 
-if (!defined(ABSPATH))
+if (!defined('ABSPATH'))
   return;
 
 define('WP_PATH', tp_normalise_path(ABSPATH));
@@ -122,6 +122,57 @@ function tp_http_request_async($url, $params, $type='POST') {
 
   fwrite($fp, $out);
   fclose($fp);
+}
+
+class TP_Options {
+
+  private $option_name = 'themepivot';
+  private $options;
+
+  function __construct() {
+
+    $options = get_option( $this->option_name );
+
+    if ( !is_array( $options ) )
+      $options = array();
+
+    $defaults = array(
+      'db_version'            => 0,
+    );
+
+    $this->options = wp_parse_args( $options, $defaults );
+  }
+
+  public static function &init() {
+    static $instance = false;
+
+    if ( !$instance ) {
+      $instance = new TP_Options();
+    }
+
+    return $instance;
+  }
+
+  public function get_option($key) {
+    if ( isset( $this->options[$key] ) )
+      return $this->options[$key];
+
+    return false;
+  }
+
+  public function update_option( $key, $value ) {
+    $this->options[$key] = $value;
+    $this->update_options();
+  }
+
+  public function delete_option( $key ) {
+    unset( $this->options[$key] );
+    $this->update_options();
+  }
+
+  public function update_options() {
+    update_option( $this->option_name, $this->options );
+  }
 }
 
 ?>

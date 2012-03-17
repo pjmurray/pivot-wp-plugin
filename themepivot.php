@@ -25,17 +25,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 /* 
-@todo 
-- check permissions on everything and make sure that the end user is notified if there's incorrec perms anywhere.
+@todo
+- check wp isn't multisite, die if it is
 - check user has permission to perform backup / upload
-- check user has permission to write files to default archive path
-- create archive path if doesn't exist
 - check for ziparchive dependency because that is heaps quicker.
-- randomise the backup directory name for security
 */
 
 // dont call the file directly
-if (!defined(ABSPATH))
+if (!defined('ABSPATH'))
   return;
 
 require_once('themepivot_config.php');
@@ -45,51 +42,53 @@ require_once('themepivot_deploy.php');
 
 class ThemePivot {
 
-	/*
-	 * Init Action
-	 *
-	 * @return void
-	 */
-	public static function init() {
-		add_action( 'admin_init', get_class() . '::plugin_admin_init' );
-		add_action( 'admin_menu', get_class() . '::plugin_admin_menu' );
+
+  private $options;
+  private $capabilities;
+
+  function __construct() {
+    $this->capabilities = new TP_Capabilities();
+    $this->options = TP_Options::init();
+
+    if (is_admin())
+      $this->add_admin_actions();
+  }
+
+  public static function &init() {
+    static $instance = false;
+
+    if ( !$instance ) {
+      $instance = new ThemePivot();
+    }
+
+    return $instance;
+  }
+
+	function add_admin_actions() {
+		add_action( 'admin_init', array($this, 'admin_init' ));
+		add_action( 'admin_menu', array($this, 'admin_menu'));
 	}
 	
-	/*
-	 * Adds a subpage under "Tools"
-	 *
-	 * @return void
-	 */
-	public static function plugin_admin_menu() {
-		$page = add_submenu_page( 'tools.php', 
-															__('ThemePivot'), 
-															__('ThemePivot'), 
-															'manage_options', 
-															'themepivot', 
-															get_class() . '::admin_ui' );
+	// adds subpage under tools
+	function admin_menu() {
+		$page = add_submenu_page( 'tools.php', __('ThemePivot'), __('ThemePivot'), 'manage_options', 'themepivot', array($this,'ui'));
 
 		// hook script load onto our page only
-		add_action('admin_print_styles-' . $page, get_class() . '::plugin_styles');
-		add_action('admin_print_scripts-' . $page, get_class(). '::plugin_scripts');
+		add_action('admin_print_styles-' . $page, array($this, 'plugin_styles'));
+		add_action('admin_print_scripts-' . $page, array($this, 'plugin_scripts'));
 	}
 
-	/*
-	 * Registers stylesheets and scripts for later loading
-	 *
-	 * @ return void
-	 */
-	public static function plugin_admin_init() {
+	function admin_init() {
 		// register assets
 		wp_register_style('themepivot_css', plugins_url('/assets/styles/themepivot.css', __FILE__), null, '1.0', 'screen');
 		wp_register_script('themepivot_js', plugins_url('/assets/scripts/themepivot.js', __FILE__));
+    // buffer page load
+    ob_start();
 	}
 
-	/*
-	 * Queues scripts for loading
-	 *
-	 * @return void
-	 */
-	public static function plugin_scripts() {
+
+  // queue scripts
+	function plugin_scripts() {
 		wp_enqueue_script( 'themepivot_js' );
 
 		// embed the javascript file that makes the AJAX request
@@ -98,123 +97,152 @@ class ThemePivot {
 		//wp_localize_script( 'my-ajax-request', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 	}
 
-	/*
-	 * Queues stylesheets for loading
-	 *
-	 * @return void
-	 */
-	public static function plugin_styles() {
+	// queue stylesheets
+	function plugin_styles() {
 		wp_enqueue_style('themepivot_css');
 		//echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
 	}
 
-	/*
-	 * UI for ThemePivot Page
-	 *
-	 * @return void
-	 */
-	public static function admin_ui() {
-	?>
-	<div class="wrap">
-		<div id="headline">
-		  <div class="tp_wrap">
-			  <h1>Theme Pivot</h1>
-			</div>
-		</div>
+	// ui
+  function ui() {
 
-    <?php
+    if (!current_user_can( 'manage_options'))
+      return;
 
-    $capabilities = new TP_Capabilities();
-    $capabilities->display_warnings();
+    $this->capabilities->determine_capabilities();
+    if ($this->capabilities->is_fatal()) {
+      $this->capabilities->ui_warnings();
+      return;
+    }
 
-    if (!$capabilities->is_fatal()) {
+    // todo: make capabilities set a message and redirect with ?error
+    /*
+    if (!empty($_GET['error'])) {
+      $this->error_notice();
+    }
+    */
 
-      if( isset($_POST['submit']) && isset($_POST['job_id'])) {
-        self::new_job($_POST['job_id']);
-      }
-      elseif( isset($_POST['makechanges']) && isset($_POST['soln_id'])) {
-        self::deploy_job($_POST['soln_id']);
-      }
-      else { ?>
-      <div class='section'>
-      <h5>Manage Projects</h5>
+    $this->handle_requests();
 
-      <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
-        <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
-        <input class="submit" name="submit" type="submit" value="Submit Job" />
-      </form>
+    $this->ui_admin();
+  }
 
-      <br />
 
-        <h5>Deploy Solution</h5>
-        <form accept-charset="UTF-8" action="" class="new_project" id="completed_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
-          <input class="text" id="completed_key" name="soln_id" placeholder="Enter Successful Project Key to make changes to your site" size="60" type="text" />
-          <input class="submit" name="makechanges" type="submit" value="Change My Site!" />
-        </form>
-      </div>
-      <?php
-      }
-      ?>
-  </div>
-  <?php
+  function error_notice() {
+    $this->ui_message('');
+  }
+
+  function ui_admin() {
+
+    $this->ui_header();
+
+    if (($msg = $this->options->get_option('flash_message'))) {
+      //$this->ui_message($msg['message'], $msg['type']);
+      $this->ui_message($msg);
+      $this->options->delete_option('flash_message');
+    }
+
+    $this->ui_active_project();
+    $this->ui_new_project();
+    $this->ui_footer();
+  }
+
+  function handle_requests() {
+    if( isset($_POST['submit']) && isset($_POST['job_id'])) {
+      check_admin_referer('new_project_nonce');
+      $this->new_job($_POST['job_id']);
+    }
+    elseif( isset($_POST['makechanges']) && isset($_POST['soln_id'])) {
+      check_admin_referer('completed_project_nonce');
+      $this->deploy_job($_POST['soln_id']);
     }
   }
 
-	/**
-	 * Runs the process
-	 *
-	 **/
-	public static function new_job( $job_id ) {
+	function new_job( $job_id ) {
 	
 		$job = new TP_Backup($job_id);
 		$result = $job->backup();
 
-    print "<div class='section'>";
+    if (is_wp_error($result))
+      $this->options->update_option('flash_message', "Sorry, we've run into an error whilst taking a snapshot of your site");
+    else
+      $this->options->update_option('flash_message', "Your website has been uploaded to ThemePivot and has been made available to our marketplace of developers to start working on your changes");
 
-    if ( !is_wp_error ( $result ) ) {
-      print "<div>";
-      print "<p>Your website has been uploaded to ThemePivot and has been made available to our marketplace of developers to start making your changes</p>";
-      print "<p><a href='http://pivot-market.herokuapp.com/projects/$job_id' target='_blank'>Click here</a>&nbsp;to view your project page</p>";
-      print "</div>";
-    } else {
-      // errored
-      $err_msg = $result->get_error_message();
-      print "<div>";
-      print "<p>Sorry, we've run into an error whilst taking a snapshot of your site</p>";
-      print "<p>$err_msg</p>";
-      print "</div>";
-    }
-    print "</div>";
+    wp_redirect( admin_url( 'admin.php?page=themepivot' ) );
+    exit();
 	}
 
-  public static function deploy_job( $soln_id ) {
+  function deploy_job( $soln_id ) {
 
     $solution = new TP_Deploy($soln_id);
     $result =  $solution->deploy();
 
-    print "<div class='section'>";
-    if ( !is_wp_error ( $result)) {
-      print "<div>";
-      print "<p>Your website has been updated with the solution you chose.</p>";
-      print "</div>";
-    } else {
-      // errored
-      $err_msg = $result->get_error_message();
-      print "<div>";
-      print "<p>Sorry, we've run into an error whilst making changes to your site</p>";
-      print "<p>All changes have been reverted</p>";
-      print "<p>$err_msg</p>";
-      print "</div>";
-    }
+    if (is_wp_error($result))
+      $this->options->update_option('flash_message', "Sorry, we've run into an error whilst making changes to your site");
+    else
+      $this->options->update_option('flash_message', "Your website has been updated with the solution you chose.");
 
-    print "</div>";
+    wp_redirect( admin_url( 'admin.php?page=themepivot' ) );
+    exit();
   }
 
-	function verify_nonce() {
+  function ui_message($message, $type = 'info') {
+    ?>
+  <div class="<?php echo $type; ?>">
+    <p><?php echo $message; ?></p>
+  </div>
+  <?php
+  }
 
-	}
+  function ui_header() {
+    ?>
+    <div class="wrap">
+      <div id="headline">
+        <div class="tp_wrap">
+          <h1>Theme Pivot</h1>
+        </div>
+      </div>
+    <?php
+  }
+
+  function ui_active_project() {
+
+    $active_project = $this->options->get_option('active_project');
+
+    echo "<h5>Manage Projects</h5><br/>";
+
+    if (!$active_project)
+      echo "<p>You have no active projects</p>";
+
+    else {
+      ?>
+      <form accept-charset="UTF-8" action="" class="new_project" id="completed_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
+        <input class="text" id="completed_key" name="soln_id" placeholder="Enter Successful Project Key to make changes to your site" size="60" type="text" />
+        <input class="submit" name="makechanges" type="submit" value="Change My Site!" />
+        <?php wp_nonce_field( 'completed_project_nonce' ); ?>
+      </form>
+      <?php
+    }
+  }
+
+  function ui_new_project() {
+    ?>
+    <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
+      <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to marketplace" size="60" type="text" />
+      <input class="submit" name="submit" type="submit" value="Submit Project" />
+      <?php wp_nonce_field( 'new_project_nonce' ); ?>
+    </form>
+    <br />
+    <?php
+  }
+
+  function ui_footer() {
+    ?>
+    </div>
+<?php
+  }
 }
 
-ThemePivot::init();
+$themepivot = ThemePivot::init();
 
 ?>

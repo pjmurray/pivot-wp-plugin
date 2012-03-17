@@ -11,7 +11,7 @@ class TP_Capabilities {
 
   public function __construct() {
 
-    $this->determine_capabilities();
+    //$this->determine_capabilities();
   }
 
   public function determine_capabilities() {
@@ -25,10 +25,10 @@ class TP_Capabilities {
   }
 
   // outputs a description of settings that MAY cause the plugin to fail
-  public function display_warnings() {
+  public function ui_warnings() {
 
-    $this->display_safe_mode();
-    $this->display_wp_filepermissions();
+    $this->ui_safe_mode();
+    $this->ui_wp_filepermissions();
   }
 
   private function is_safe_mode() {
@@ -43,7 +43,7 @@ class TP_Capabilities {
 
     try {
 
-      if ( ! is_dir(ARCHIVE_PATH)  && !is_writable(PLUGIN_PATH)) {
+      if ( !is_dir(ARCHIVE_PATH)  && !is_writable(PLUGIN_PATH)) {
         $this->fatal_constraint = true;
 
         echo '<div class="warning"><h3>' . __( 'Theme Pivot is almost ready.') . '</h3><p>' . sprintf('However, the exports directory can\'t be created because your %s directory isn\'t writable..', PLUGIN_PATH) . '</p>';
@@ -70,17 +70,14 @@ class TP_Capabilities {
           $php_group = reset( explode( ' ', exec( 'groups' ) ) );
           echo '<p>' . sprintf( 'From a server shell prompt, run %s', '<code>chown -R ' . $php_user . ':' . $php_group . ' ' . ARCHIVE_PATH . '</code>') . '</p>';
           echo '<p>' . sprintf( 'Or %s', '<code>chmod -R 777 ' . ARCHIVE_PATH . '</code>') . '</p>';
-          echo '<p>Or set the permissions to your own liking.</p></div>';
+          echo '<p>Or set the permissions to your own liking. Note that a .htaccess file will placed in the exports directory to prevent unauthorised access.</p></div>';
         }
         else {
           echo '<p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p></div>';
         }
 
         /*
-        // owner of themepivot path
         $owner = posix_getpwuid(fileowner(PLUGIN_PATH));
-
-        // file permissions
         $permissions = fileperms(PLUGIN_PATH);
 
         if ($permissions < 755)
@@ -97,7 +94,7 @@ class TP_Capabilities {
     }
   }
 
-  private function display_safe_mode() {
+  private function ui_safe_mode() {
     if ($this->safe_mode) {
       print "<div class='warning'>Safe mode is enabled on your host. This impacts Themepivot plugin functinoality</div>";
     }
