@@ -76,7 +76,7 @@ class TP_Capabilities {
     if (!$this->archive_path_writable) {
       $php_user = exec('whoami');
       $php_group = reset( explode( ' ', exec( 'groups' ) ) );
-?>
+      ?>
     <div class="warning">
       <h3>Theme Pivot is almost ready.</h3>
       <p>However, the Theme Pivot plugin directory <?php echo PLUGIN_PATH ?> isn't writable preventing your website from being uploaded to our servers.</p>
@@ -84,7 +84,7 @@ class TP_Capabilities {
         <p>From a server shell prompt, run <code>chown <?php echo $php_user ?>:<?php echo $php_group . ' ' . PLUGIN_PATH ?></code></p>
         <p>Or <code>chmod -R 777 <?php echo PLUGIN_PATH ?></code></p>
         <p>Or create the folder yourself.</p>
-      <?php } else ?>
+        <?php } else ?>
         <p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p>
     </div>
 <?php

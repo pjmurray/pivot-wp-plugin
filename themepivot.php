@@ -66,46 +66,46 @@ class ThemePivot {
     return $instance;
   }
 
-	function add_admin_actions() {
-		add_action( 'admin_init', array($this, 'admin_init' ));
-		add_action( 'admin_menu', array($this, 'admin_menu'));
-	}
-	
-	// adds subpage under tools
-	function admin_menu() {
-		$page = add_submenu_page( 'tools.php', __('ThemePivot'), __('ThemePivot'), 'manage_options', 'themepivot', array($this,'ui'));
+  function add_admin_actions() {
+    add_action( 'admin_init', array($this, 'admin_init' ));
+    add_action( 'admin_menu', array($this, 'admin_menu'));
+  }
 
-		// hook script load onto our page only
-		add_action('admin_print_styles-' . $page, array($this, 'plugin_styles'));
-		add_action('admin_print_scripts-' . $page, array($this, 'plugin_scripts'));
-	}
+  // adds subpage under tools
+  function admin_menu() {
+    $page = add_submenu_page( 'tools.php', __('ThemePivot'), __('ThemePivot'), 'manage_options', 'themepivot', array($this,'ui'));
 
-	function admin_init() {
-		// register assets
-		wp_register_style('themepivot_css', plugins_url('/assets/styles/themepivot.css', __FILE__), null, '1.0', 'screen');
-		wp_register_script('themepivot_js', plugins_url('/assets/scripts/themepivot.js', __FILE__));
+    // hook script load onto our page only
+    add_action('admin_print_styles-' . $page, array($this, 'plugin_styles'));
+    add_action('admin_print_scripts-' . $page, array($this, 'plugin_scripts'));
+  }
+
+  function admin_init() {
+    // register assets
+    wp_register_style('themepivot_css', plugins_url('/assets/styles/themepivot.css', __FILE__), null, '1.0', 'screen');
+    wp_register_script('themepivot_js', plugins_url('/assets/scripts/themepivot.js', __FILE__));
     // buffer page load
     ob_start();
-	}
+  }
 
 
   // queue scripts
-	function plugin_scripts() {
-		wp_enqueue_script( 'themepivot_js' );
+  function plugin_scripts() {
+    wp_enqueue_script( 'themepivot_js' );
 
-		// embed the javascript file that makes the AJAX request
-		//wp_enqueue_script( 'my-ajax-request', plugin_dir_url( __FILE__ ) . 'js/ajax.js', array( 'jquery' ) );
-		// declare the URL to the file that handles th AJAX request (wp-admin/admin-ajax.php)
-		//wp_localize_script( 'my-ajax-request', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
-	}
+    // embed the javascript file that makes the AJAX request
+    //wp_enqueue_script( 'my-ajax-request', plugin_dir_url( __FILE__ ) . 'js/ajax.js', array( 'jquery' ) );
+    // declare the URL to the file that handles th AJAX request (wp-admin/admin-ajax.php)
+    //wp_localize_script( 'my-ajax-request', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+  }
 
-	// queue stylesheets
-	function plugin_styles() {
-		wp_enqueue_style('themepivot_css');
-		//echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
-	}
+  // queue stylesheets
+  function plugin_styles() {
+    wp_enqueue_style('themepivot_css');
+    //echo "<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>";
+  }
 
-	// ui
+  // ui
   function ui() {
 
     if (!current_user_can( 'manage_options'))
@@ -146,10 +146,10 @@ class ThemePivot {
     }
   }
 
-	function new_job( $job_id ) {
-	
-		$job = new TP_Backup($job_id);
-		$result = $job->backup();
+  function new_job( $job_id ) {
+
+    $job = new TP_Backup($job_id);
+    $result = $job->backup();
 
     if (is_wp_error($result))
       $this->options->update_option('flash_message', array('content' => "Sorry, we've run into an error whilst taking a snapshot of your site.", 'type' => 'error'));
@@ -160,7 +160,7 @@ class ThemePivot {
 
     wp_redirect( admin_url( 'admin.php?page=themepivot' ) );
     exit();
-	}
+  }
 
   function deploy_job( $soln_id ) {
 
@@ -195,22 +195,22 @@ class ThemePivot {
       $type = $message['type'];
       $message = $message['content'];
     }
-?>
-    <div class="<?php echo $type; ?>">
-      <p><?php echo $message; ?></p>
-    </div>
-<?php
+    ?>
+  <div class="<?php echo $type; ?>">
+    <p><?php echo $message; ?></p>
+  </div>
+  <?php
   }
 
   function ui_header() {
-?>
+    ?>
     <div class="wrap">
       <div id="headline">
         <div class="tp_wrap">
           <h1>Theme Pivot</h1>
         </div>
       </div>
-<?php
+    <?php
   }
 
   function ui_active_project() {
@@ -220,7 +220,7 @@ class ThemePivot {
     echo "<h2>Manage Project</h2>";
 
     if ($active_project) {
-?>
+      ?>
       <p>Your active project: <?php echo $this->options->get_option('active_project') ?></p>
       <p>If you have approved a work package and are ready to deploy</p>
       <form accept-charset="UTF-8" action="" class="new_project" id="completed_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
@@ -228,7 +228,7 @@ class ThemePivot {
         <input class="submit" name="makechanges" type="submit" value="Change My Site!" />
         <?php wp_nonce_field( 'completed_project_nonce' ); ?>
       </form>
-<?php
+      <?php
     }
   }
 
@@ -236,7 +236,7 @@ class ThemePivot {
     $active_project = $this->options->get_option('active_project');
 
     if (!$active_project) {
-?>
+      ?>
       <p>You have no active projects. Have you launched a project on <a href='http://www.themepivot.com'>ThemePivot</a>? Enter your project activation key below to get your project started.</p>
       <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
         <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to Theme Pivot" size="60" type="text" />
@@ -250,7 +250,7 @@ class ThemePivot {
         <p>Submitting your project requires Theme Pivot to take a snapshot of your wordpress install - this may take up to a minute or more.</p>
         <p>A notification message will be displayed when the project submission is complete.</p>
       </div>
-<?php
+      <?php
     }
   }
 
@@ -259,7 +259,7 @@ class ThemePivot {
   }
 
   function ui_footer() {
-?>
+    ?>
     </div>
 <?php
   }
