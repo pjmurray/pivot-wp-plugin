@@ -7,6 +7,7 @@ class TP_Capabilities {
 
   private $safe_mode;
   private $archive_path_writable;
+  private $wp_content_path_writable;
 
   public function __construct($options) {
     $this->options = $options;
@@ -18,7 +19,8 @@ class TP_Capabilities {
     // flush fatal constraint
     $this->options->update_option('fatal_constraint', false);
 
-    $this->is_safe_mode();
+    $this->safe_mode();
+    $this->multisite();
     $this->wp_permissions();
   }
 
@@ -31,18 +33,32 @@ class TP_Capabilities {
   public function ui_warnings() {
 
     $this->ui_safe_mode();
+    $this->ui_multisite();
     $this->ui_wp_permissions();
   }
 
-  private function is_safe_mode() {
+  private function safe_mode() {
     $this->safe_mode = $this->ini_get_bool('safe_mode');
+  }
+
+  private function multisite() {
+    if ( is_multisite() )
+      $this->options->update_option('fatal_constraint', true);
   }
 
   private function wp_permissions() {
 
     try {
-      if ( is_dir(ARCHIVE_PATH) && is_writable(ARCHIVE_PATH)) {
-        $this->archive_path_writable;
+      if ($this->options->get_option('active_project')) {
+        // need wp-content writable
+        $this->wp_content_path_writable = is_dir(WP_PATH . '/wp-content') && is_writable(WP_PATH . '/wp-content') ? true : false;
+
+        if (!$this->wp_content_path_writable)
+          $this->options->update_optoin('fatal_constraint', true);
+      }
+      else {
+        // need themepivot writable
+        $this->archive_path_writable = (ARCHIVE_PATH) && is_writable(ARCHIVE_PATH) ? true : false;
 
         /*
         $owner = posix_getpwuid(fileowner(PLUGIN_PATH));
@@ -55,9 +71,9 @@ class TP_Capabilities {
           // set flag in options
 
         */
-      }
-      else {
-        $this->options->update_option('fatal_constraint', true);
+
+        if (!$this->archive_path_writable)
+          $this->options->update_option('fatal_constraint', true);
       }
     }
     catch (Exception $e) {
@@ -71,23 +87,40 @@ class TP_Capabilities {
     }
   }
 
+  private function ui_multisite() {
+    if ( is_multisite() ) {
+      ?>
+      <div class="err">
+        <h3>Sorry, ThemePivot doesn't yet support WordPress Multisite installs.</h3>
+        <p>We're working on it, <a href="mailto:support@themepivot.com">Contact us</a> to register your interest in Multisite support!</p>
+      </div>
+      <?php
+    }
+  }
+
   private function ui_wp_permissions() {
 
-    if (!$this->archive_path_writable) {
+    if (!$this->archive_path_writable && !$this->options->get_option('active_project')) {
       $php_user = exec('whoami');
       $php_group = reset( explode( ' ', exec( 'groups' ) ) );
       ?>
-    <div class="warning">
-      <h3>Theme Pivot is almost ready.</h3>
-      <p>However, the Theme Pivot plugin directory <?php echo PLUGIN_PATH ?> isn't writable preventing your website from being uploaded to our servers.</p>
-      <?php if (strncasecmp(PHP_OS,'win',3) != 0) { ?>
-        <p>From a server shell prompt, run <code>chown <?php echo $php_user ?>:<?php echo $php_group . ' ' . PLUGIN_PATH ?></code></p>
-        <p>Or <code>chmod -R 777 <?php echo PLUGIN_PATH ?></code></p>
-        <p>Or create the folder yourself.</p>
-        <?php } else ?>
-        <p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p>
-    </div>
-<?php
+      <div class="warning">
+        <h3>Theme Pivot is almost ready.</h3>
+        <p>However, the Theme Pivot plugin directory <?php echo PLUGIN_PATH ?> isn't writable preventing your website from being uploaded to our servers.</p>
+        <?php if (strncasecmp(PHP_OS,'win',3) != 0) { ?>
+          <p>From a server shell prompt, run <code>chown <?php echo $php_user ?>:<?php echo $php_group . ' ' . PLUGIN_PATH ?></code></p>
+          <p>Or <code>chmod -R 777 <?php echo PLUGIN_PATH ?></code></p>
+          <p>Or create the folder yourself.</p>
+          <?php } else ?>
+          <p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p>
+          <p style="font-weight: bold">Having problems?</p>
+          <p><a href="mailto:support@themepivot.com">Contact us</a> and our experts will help you with initial setup.</p>
+      </div>
+      <?php
+    }
+
+    if (!$this->wp_content_path_writable && $this->options->get_option('active_project')) {
+
     }
   }
 

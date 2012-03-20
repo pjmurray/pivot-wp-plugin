@@ -50,7 +50,7 @@ class ThemePivot {
     $this->options = new TP_Options();
     $this->capabilities = new TP_Capabilities($this->options);
 
-    $this->options->delete_option('active_project');
+    //$this->options->delete_option('active_project');
 
     if (is_admin())
       $this->add_admin_actions();
@@ -154,7 +154,7 @@ class ThemePivot {
     if (is_wp_error($result))
       $this->options->update_option('flash_message', array('content' => "Sorry, we've run into an error whilst taking a snapshot of your site.", 'type' => 'error'));
     else {
-      $this->options->update_option('flash_message', array('content' => "Your website has been uploaded to ThemePivot and has been made available to our marketplace of developers to start working on your changes.", 'type' => 'success'));
+      $this->options->update_option('flash_message', array('content' => "Thanks for your patience! Your wordpress install has now been uploaded to ThemePivot and has been made available to our marketplace of developers to start working on your changes.", 'type' => 'success'));
       $this->options->update_option('active_project', $job_id);
     }
 
@@ -222,12 +222,16 @@ class ThemePivot {
     if ($active_project) {
       ?>
       <p>Your active project: <?php echo $this->options->get_option('active_project') ?></p>
-      <p>If you have approved a work package and are ready to deploy</p>
+      <p>Please visit <a href='http://pivot-market.herokuapp.com'>ThemePivot</a> to view your project.</p>
+      <p style="font-weight: bold">Completed and paid for your project?</p>
+      <p><a href="mailto:support@themepivot.com">Contact us</a> and our experts will help you with deploying your changes.</p>
+  
+
+      <!--p>If you have approved a work package and are ready to deploy</p>
       <form accept-charset="UTF-8" action="" class="new_project" id="completed_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
-        <!--input class="text" id="completed_key" name="soln_id" placeholder="Enter Successful Project Key to make changes to your site" size="60" type="text" /-->
-        <input class="submit" name="makechanges" type="submit" value="Change My Site!" />
-        <?php wp_nonce_field( 'completed_project_nonce' ); ?>
-      </form>
+        <input class="submit" name="makechanges" type="submit" value="Change My Site!" /-->
+        <?php //wp_nonce_field( 'completed_project_nonce' ); ?>
+      <!--/form-->
       <?php
     }
   }
@@ -237,7 +241,7 @@ class ThemePivot {
 
     if (!$active_project) {
       ?>
-      <p>You have no active projects. Have you launched a project on <a href='http://www.themepivot.com'>ThemePivot</a>? Enter your project activation key below to get your project started.</p>
+      <p>You have no active projects. Have you launched a project on <a href='http://pivot-market.herokuapp.com'>ThemePivot</a>? Enter your project activation key below to get your project started.</p>
       <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
         <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to Theme Pivot" size="60" type="text" />
         <input class="submit" name="submit" type="submit" value="Submit Project" />
@@ -247,9 +251,15 @@ class ThemePivot {
       <div class="warning">
         <h3>Important - After you click 'Submit Project' do not close the browser or leave this page!</h3>
         <p></p>
-        <p>Submitting your project requires Theme Pivot to take a snapshot of your wordpress install - this may take up to a minute or more.</p>
+        <p>Submitting your project requires ThemePivot to take a snapshot of your wordpress install - this may take up to a minute or more.</p>
         <p>A notification message will be displayed when the project submission is complete.</p>
       </div>
+      <p style="font-weight: bold">What does the plugin upload?</p>
+      <p>Well, ThemePivot backs up most of your wordpress install including the core files and your database. Media files such as music tracks and large images are excluded.</p>
+      <p style="font-weight: bold">What about my passwords?</p>
+      <p>ThemePivot removes all passwords from your configuration files and your database before it is made available our developers. Passwords and secure tokens stored in your database by plugins such as Twitter or eCommerce are also removed.</p>
+      <p style="font-weight: bold">Having problems?</p>
+      <p><a href="mailto:support@themepivot.com">Contact us</a> and our experts will help you with initial setup, restoring your files, and any needs in between.</p>
       <?php
     }
   }
@@ -261,7 +271,7 @@ class ThemePivot {
   function ui_footer() {
     ?>
     </div>
-<?php
+    <?php
   }
 }
 

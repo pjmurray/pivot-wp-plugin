@@ -170,7 +170,7 @@ a.button:active{
 }
 
 /* notification messages */
-.info, .success, .warning, .error {
+.info, .success, .warning, .err {
   border: 1px solid;
   margin: 10px 0px;
   padding:5px 0;
@@ -193,7 +193,7 @@ a.button:active{
   background-color: #FEEFB3;
   /*background-image: url('warning.png');*/
 }
-.error {
+.err {
   border-color: #D8000C;
   background-color: #FFBABA;
   /*background-image: url('error.png');*/
