@@ -27,19 +27,19 @@ class TP_Backup {
 
     try {
 
-      $this->init_fs();
+      //$this->init_fs();
 
       $db_backup = new TP_Backup_Database();
       $db_backup->backup();
 
-      //$files_backup = new TP_Backup_Files();
-      //$files_backup->backup($this->zip_filename, WP_PATH);
-      //$this->zip_file = $files_backup->get_zip_file();
+      $files_backup = new TP_Backup_Files();
+      $files_backup->backup($this->zip_filename, WP_PATH);
+      $this->zip_file = $files_backup->get_zip_file();
 
-      //$this->upload();
+      $this->upload();
 
-      //$db_backup->cleanup();
-      //$files_backup->cleanup();
+      $db_backup->cleanup();
+      $files_backup->cleanup();
 
       return true;
     }
@@ -48,6 +48,7 @@ class TP_Backup {
     }
   }
 
+  /*
   private function init_fs() {
 
     // check archive path exists
@@ -71,8 +72,8 @@ class TP_Backup {
         tp_close_file($file);
       }
     }
-
   }
+  */
 
   // generate a list of files to exclude from the archive
   /*

@@ -4,106 +4,94 @@ require_once('themepivot_config.php');
 
 class TP_Capabilities {
 
+
   private $safe_mode;
-  private $mem_limit;
-  private $file_permissions;
-  private $fatal_constraint;
+  private $archive_path_writable;
 
-  public function __construct() {
-
+  public function __construct($options) {
+    $this->options = $options;
     $this->determine_capabilities();
   }
 
   public function determine_capabilities() {
+
+    // flush fatal constraint
+    $this->options->update_option('fatal_constraint', false);
 
     $this->is_safe_mode();
     $this->wp_permissions();
   }
 
   public function is_fatal() {
-    return $this->fatal_constraint;
+
+    return $this->options->get_option('fatal_constraint');
   }
 
   // outputs a description of settings that MAY cause the plugin to fail
-  public function display_warnings() {
+  public function ui_warnings() {
 
-    $this->display_safe_mode();
-    $this->display_wp_filepermissions();
+    $this->ui_safe_mode();
+    $this->ui_wp_permissions();
   }
 
   private function is_safe_mode() {
-    if ( $this->ini_get_bool( 'safe_mode' ) === true ) {
-      $this->safe_mode = true;
-    } else {
-      $this->safe_mode = false;
-    }
+    $this->safe_mode = $this->ini_get_bool('safe_mode');
   }
 
   private function wp_permissions() {
 
     try {
-
-      if ( ! is_dir(ARCHIVE_PATH)  && !is_writable(PLUGIN_PATH)) {
-        $this->fatal_constraint = true;
-
-        echo '<div class="warning"><h3>' . __( 'Theme Pivot is almost ready.') . '</h3><p>' . sprintf('However, the exports directory can\'t be created because your %s directory isn\'t writable..', PLUGIN_PATH) . '</p>';
-        if (strncasecmp(PHP_OS,'win',3) != 0) {
-
-          $php_user = exec('whoami');
-          $php_group = reset( explode( ' ', exec( 'groups' ) ) );
-          echo '<p>' . sprintf( 'From a server shell prompt, run %s', '<code>chown ' . $php_user . ':' . $php_group . ' ' . PLUGIN_PATH . '</code>') . '</p>';
-          echo '<p>' . sprintf( 'Or %s', '<code>chmod -R 777 ' . PLUGIN_PATH . '</code>') . '</p>';
-          echo '<p>Or create the folder yourself.</p></div>';
-        }
-        else {
-          echo '<p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p></div>';
-        }
-      }
-
-      if ( is_dir(ARCHIVE_PATH) && !is_writable(ARCHIVE_PATH)) {
-        $this->fatal_constraint = true;
-
-        echo '<div class="warning"><h3>' . __( 'Theme Pivot is almost ready.') . '</h3><p>However, the Theme Pivot exports directory isn\'t writable..</p>';
-        if (strncasecmp(PHP_OS,'win',3) != 0) {
-
-          $php_user = exec('whoami');
-          $php_group = reset( explode( ' ', exec( 'groups' ) ) );
-          echo '<p>' . sprintf( 'From a server shell prompt, run %s', '<code>chown -R ' . $php_user . ':' . $php_group . ' ' . ARCHIVE_PATH . '</code>') . '</p>';
-          echo '<p>' . sprintf( 'Or %s', '<code>chmod -R 777 ' . ARCHIVE_PATH . '</code>') . '</p>';
-          echo '<p>Or set the permissions to your own liking.</p></div>';
-        }
-        else {
-          echo '<p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p></div>';
-        }
+      if ( is_dir(ARCHIVE_PATH) && is_writable(ARCHIVE_PATH)) {
+        $this->archive_path_writable;
 
         /*
-        // owner of themepivot path
         $owner = posix_getpwuid(fileowner(PLUGIN_PATH));
-
-        // file permissions
         $permissions = fileperms(PLUGIN_PATH);
 
         if ($permissions < 755)
-          print("<div>Owner permissions are insufficient to enable this plugin</div>");
+          // set flag options
 
         if ( (strcmp($php_user, $owner['name']) != 0) && $permissions < 775)
+          // set flag in options
 
-          echo "big problem: owner != user and permission < 775";
         */
+      }
+      else {
+        $this->options->update_option('fatal_constraint', true);
       }
     }
     catch (Exception $e) {
-
+      $this->options->update_option('fatal_constraint', true);
     }
   }
 
-  private function display_safe_mode() {
+  private function ui_safe_mode() {
     if ($this->safe_mode) {
-      print "<div class='warning'>Safe mode is enabled on your host. This impacts Themepivot plugin functinoality</div>";
+      print "<div class='warning'><p>Safe mode is enabled on your host. This impacts Themepivot plugin functinoality</p></div>";
     }
   }
 
-  private function display_wp_filepermissions() {
+  private function ui_wp_permissions() {
+
+    if (!$this->archive_path_writable) {
+      $php_user = exec('whoami');
+      $php_group = reset( explode( ' ', exec( 'groups' ) ) );
+?>
+    <div class="warning">
+      <h3>Theme Pivot is almost ready.</h3>
+      <p>However, the Theme Pivot plugin directory <?php echo PLUGIN_PATH ?> isn't writable preventing your website from being uploaded to our servers.</p>
+      <?php if (strncasecmp(PHP_OS,'win',3) != 0) { ?>
+        <p>From a server shell prompt, run <code>chown <?php echo $php_user ?>:<?php echo $php_group . ' ' . PLUGIN_PATH ?></code></p>
+        <p>Or <code>chmod -R 777 <?php echo PLUGIN_PATH ?></code></p>
+        <p>Or create the folder yourself.</p>
+      <?php } else ?>
+        <p>Please refer wordpress.org for details on how to enable write permissions for Windows Servers.</p>
+    </div>
+<?php
+    }
+  }
+
+  private function ui_wp_extended_permissions() {
     /*
     $this->file_permissions = array();
 

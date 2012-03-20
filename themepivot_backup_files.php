@@ -224,16 +224,22 @@ class TP_Backup_Files {
 function tp_pclzip_callback( $event, &$file) {
   //global $tp_excludes_string;
 
-  // don't add undreadable files
-  if ( !is_readable( $file['filename'] ) || !file_exists( $file['filename'] ) )
-    return 0;
-
   $abs_file = tp_normalise_path($file['filename']);
 
-  // dont include zips
-  if (strpos($abs_file, '.zip')) {
-    //tp_log("skipping $abs_file");
+  // don't add undreadable files
+  if ( !is_readable( $abs_file ) || !file_exists( $abs_file ) )
     return 0;
+  /*
+  if ( !is_readable( $file['filename'] ) || !file_exists( $file['filename'] ) )
+    return 0;
+  */
+
+  // ignore these file types
+  $ignore_file_types = array('.zip','.mp3', '.m4a', '.wav', '.wma', '.avi', '.flv', '.mov', '.mp4', '.mpg', '.wmv');
+  $ext = pathinfo($abs_file, PATHINFO_EXTENSION);
+  foreach ($ignore_file_types as $type) {
+    if (strcasecmp($ext,$type) == 0)
+      return 0;
   }
 
   // if in themepivot path only include database dump
