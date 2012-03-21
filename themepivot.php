@@ -49,7 +49,7 @@ class ThemePivot {
   function __construct() {
 
     $this->options = TP_Options::init();
-    $this->options->delete_option('active_project');
+    //$this->options->delete_option('active_project');
 
     if (is_admin())
       $this->add_admin_actions();
