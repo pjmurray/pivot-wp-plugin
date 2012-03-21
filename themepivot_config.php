@@ -128,6 +128,7 @@ class TP_Options {
 
   private $option_name = 'themepivot';
   private $options;
+  private $persisted_options;
 
   function __construct() {
 
@@ -137,13 +138,12 @@ class TP_Options {
       $options = array();
 
     $defaults = array(
-      'db_version'            => 0,
+      'db_version' => 0,
     );
 
-    $this->options = wp_parse_args( $options, $defaults );
+    $this->persisted_options = wp_parse_args( $options, $defaults );
   }
 
-  /*
   public static function &init() {
     static $instance = false;
 
@@ -153,27 +153,32 @@ class TP_Options {
 
     return $instance;
   }
-  */
 
   public function get_option($key) {
     if ( isset( $this->options[$key] ) )
       return $this->options[$key];
-
+    if ( isset( $this->persisted_options[$key] ) )
+      return $this->persisted_options[$key];
     return false;
   }
 
   public function update_option( $key, $value ) {
     $this->options[$key] = $value;
-    $this->update_options();
+  }
+
+  public function persist_option( $key, $value ) {
+    $this->persisted_options[$key] = $value;
+    $this->persist_options();
   }
 
   public function delete_option( $key ) {
     unset( $this->options[$key] );
-    $this->update_options();
+    unset( $this->persisted_options[$key]);
+    $this->persist_options();
   }
 
-  public function update_options() {
-    update_option( $this->option_name, $this->options );
+  public function persist_options() {
+    update_option( $this->option_name, $this->persisted_options );
   }
 }
 

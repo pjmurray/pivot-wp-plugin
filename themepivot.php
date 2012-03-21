@@ -47,10 +47,9 @@ class ThemePivot {
   private $capabilities;
 
   function __construct() {
-    $this->options = new TP_Options();
-    $this->capabilities = new TP_Capabilities($this->options);
 
-    //$this->options->delete_option('active_project');
+    $this->options = TP_Options::init();
+    $this->options->delete_option('active_project');
 
     if (is_admin())
       $this->add_admin_actions();
@@ -113,6 +112,8 @@ class ThemePivot {
 
     $this->ui_header();
 
+    $this->capabilities = new TP_Capabilities($this->options);
+    $this->capabilities->determine_capabilities();
     if ($this->capabilities->is_fatal()) {
       $this->capabilities->ui_warnings();
       return;
@@ -138,39 +139,44 @@ class ThemePivot {
   function handle_requests() {
     if( isset($_POST['submit']) && isset($_POST['job_id'])) {
       check_admin_referer('new_project_nonce');
-      $this->new_job($_POST['job_id']);
+      $this->new_job();
     }
     elseif( isset($_POST['makechanges']) && isset($_POST['soln_id'])) {
       check_admin_referer('completed_project_nonce');
-      $this->deploy_job($_POST['soln_id']);
+      $this->deploy_job();
     }
   }
 
-  function new_job( $job_id ) {
+  function new_job() {
+    $job_id = $_POST['job_id'];
+    if (isset($_POST['option_wp_content']) && $_POST['option_wp_content'] == 'true')
+      $this->options->update_option('exclude_wp_content', true);
 
     $job = new TP_Backup($job_id);
     $result = $job->backup();
 
     if (is_wp_error($result))
-      $this->options->update_option('flash_message', array('content' => "Sorry, we've run into an error whilst taking a snapshot of your site.", 'type' => 'error'));
+      $this->options->persist_option('flash_message', array('content' => "Sorry, we've run into an error whilst taking a snapshot of your site.", 'type' => 'error'));
     else {
-      $this->options->update_option('flash_message', array('content' => "Thanks for your patience! Your wordpress install has now been uploaded to ThemePivot and has been made available to our marketplace of developers to start working on your changes.", 'type' => 'success'));
-      $this->options->update_option('active_project', $job_id);
+      $this->options->persist_option('flash_message', array('content' => "Thanks for your patience! Your wordpress install has now been uploaded to ThemePivot and has been made available to our marketplace of developers to start working on your changes.", 'type' => 'info'));
+      $this->options->persist_option('active_project', $job_id);
     }
 
     wp_redirect( admin_url( 'admin.php?page=themepivot' ) );
     exit();
   }
 
-  function deploy_job( $soln_id ) {
+  function deploy_job() {
+
+    $soln_id = $_POST['soln_id'];
 
     $solution = new TP_Deploy($soln_id);
     $result =  $solution->deploy();
 
     if (is_wp_error($result))
-      $this->options->update_option('flash_message', array('content' => "Sorry, we've run into an error whilst making changes to your site.", 'type' => 'error'));
+      $this->options->persist_option('flash_message', array('content' => "Sorry, we've run into an error whilst making changes to your site.", 'type' => 'error'));
     else
-      $this->options->update_option('flash_message', array('content' => "Your website has been updated with the solution you chose.", 'type' => 'success'));
+      $this->options->persist_option('flash_message', array('content' => "Your website has been updated with the solution you chose.", 'type' => 'info'));
 
     wp_redirect( admin_url( 'admin.php?page=themepivot' ) );
     exit();
@@ -241,12 +247,19 @@ class ThemePivot {
 
     if (!$active_project) {
       ?>
-      <p>You have no active projects. Have you launched a project on <a href='http://pivot-market.herokuapp.com'>ThemePivot</a>? Enter your project activation key below to get your project started.</p>
+      <p>You have no active projectes. Have you launched a project on <a href='http://pivot-market.herokuapp.com'>ThemePivot</a>? Enter your project activation key below to get your project started.</p>
+
       <form accept-charset="UTF-8" action="" class="new_project" id="new_pivot" method="POST"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
         <input class="text" id="activation_key" name="job_id" placeholder="Enter Project Activation Key to upload site to Theme Pivot" size="60" type="text" />
         <input class="submit" name="submit" type="submit" value="Submit Project" />
         <?php wp_nonce_field( 'new_project_nonce' ); ?>
+        <div class="options">
+          <h5>You should only select options below if you are having problems</h5>
+          <input class="checkbox" type="checkbox" id="wp_content" name="option_wp_content" value="true"/><label for="wp_content">Only backup themes and plugins directories</label>
+        </div>
+        <!--input class="submit" name="submit" type="submit" value="Submit Project" /-->
       </form>
+
       <br />
       <div class="warning">
         <h3>Important - After you click 'Submit Project' do not close the browser or leave this page!</h3>

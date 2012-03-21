@@ -11,13 +11,12 @@ class TP_Capabilities {
 
   public function __construct($options) {
     $this->options = $options;
-    $this->determine_capabilities();
   }
 
   public function determine_capabilities() {
 
     // flush fatal constraint
-    $this->options->update_option('fatal_constraint', false);
+    //$this->options->update_option('fatal_constraint', false);
 
     $this->safe_mode();
     $this->multisite();
@@ -53,8 +52,8 @@ class TP_Capabilities {
         // need wp-content writable
         $this->wp_content_path_writable = is_dir(WP_PATH . '/wp-content') && is_writable(WP_PATH . '/wp-content') ? true : false;
 
-        if (!$this->wp_content_path_writable)
-          $this->options->update_optoin('fatal_constraint', true);
+        //if (!$this->wp_content_path_writable)
+        //  $this->options->update_option('fatal_constraint', true);
       }
       else {
         // need themepivot writable

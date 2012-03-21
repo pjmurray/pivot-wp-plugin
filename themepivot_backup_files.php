@@ -229,13 +229,9 @@ function tp_pclzip_callback( $event, &$file) {
   // don't add undreadable files
   if ( !is_readable( $abs_file ) || !file_exists( $abs_file ) )
     return 0;
-  /*
-  if ( !is_readable( $file['filename'] ) || !file_exists( $file['filename'] ) )
-    return 0;
-  */
 
   // ignore these file types
-  $ignore_file_types = array('.zip','.mp3', '.m4a', '.wav', '.wma', '.avi', '.flv', '.mov', '.mp4', '.mpg', '.wmv');
+  $ignore_file_types = array('zip','mp3', 'm4a', 'wav', 'wma', 'avi', 'flv', 'mov', 'mp4', 'mpg', 'wmv');
   $ext = pathinfo($abs_file, PATHINFO_EXTENSION);
   foreach ($ignore_file_types as $type) {
     if (strcasecmp($ext,$type) == 0)
@@ -253,13 +249,15 @@ function tp_pclzip_callback( $event, &$file) {
     }
   }
 
-  // if in wp-content path only include /plugins and /themes
-  if (strpos($abs_file, 'wp-content/')) {
-    if (strpos($abs_file, 'plugins') || strpos($abs_file, 'themes'))
-      return 1;
-    else {
-      //tp_log("skipping $abs_file");
-      return 0;
+  // if 'backup_wp_content' flag not set then only backup plugins and themes
+  if (TP_Options::init()->get_option('exclude_wp_content')) {
+    if (strpos($abs_file, 'wp-content/')) {
+      if (strpos($abs_file, 'plugins') || strpos($abs_file, 'themes'))
+        return 1;
+      else {
+        //tp_log("skipping $abs_file");
+        return 0;
+      }
     }
   }
 
